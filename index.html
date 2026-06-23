@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Ascent | Interactive Parallax Journey</title>
+  
+  <!-- Google Fonts for typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset & Base Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    :root {
+      --bg-deep: #0c071e;
+      --bg-card: rgba(22, 13, 49, 0.6);
+      --accent-purple: #9d4edd;
+      --accent-cyan: #06b6d4;
+      --text-main: #f3f0fc;
+      --text-muted: #a5a1b8;
+      --scroll-y: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-deep);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-purple);
+      border-radius: 4px;
+    }
+
+    /* Altitude HUD Gauge (Interactivity Feature) */
+    .hud-gauge {
+      position: fixed;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      background: rgba(12, 7, 30, 0.7);
+      padding: 20px 12px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .hud-track {
+      width: 4px;
+      height: 150px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hud-fill {
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(to top, var(--accent-purple), var(--accent-cyan));
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      transition: height 0.1s ease-out;
+    }
+
+    .hud-label {
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+      color: var(--text-muted);
+    }
+
+    .hud-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      color: var(--accent-cyan);
+      font-weight: bold;
+    }
+
+    /* Dynamic Particle Background Canvas */
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Navigation Header */
+    header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 30px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #fff, var(--accent-cyan));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+
+    /* Parallax Hero Container */
+    .parallax-hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    /* Common layer styles */
+    .layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: bottom center;
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    /* Individual Parallax Layers & Speeds */
+    
+    /* Layer 1: Sky (Moves extremely slow) */
+    .layer-sky {
+      background: linear-gradient(to bottom, #09011a, #1a0f3c);
+      z-index: 1;
+      transform: translateY(calc(var(--scroll-y) * 0.15px)) translateZ(0);
+    }
+
+    /* Layer 2: Cosmic Sun / Moon */
+    .layer-sun {
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: translateY(calc(var(--scroll-y) * 0.35px)) translateZ(0);
+    }
+    .sun-element {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #f72585 0%, rgba(247, 37, 133, 0) 70%);
+      border-radius: 50%;
+      filter: blur(15px);
+      opacity: 0.85;
+      margin-bottom: 10%;
+    }
+
+    /* Layer 3: Far Mountain Peaks */
+    .layer-mountains-back {
+      z-index: 3;
+      transform: translateY(calc(var(--scroll-y) * 0.5px)) translateZ(0);
+    }
+
+    /* Layer 4: Interactive Hero Typography */
+    .layer-hero-text {
+      position: relative;
+      z-index: 4;
+      text-align: center;
+      transform: translateY(calc(var(--scroll-y) * 0.55px)) translateZ(0);
+      max-width: 90%;
+    }
+
+    .layer-hero-text h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -2px;
+      background: linear-gradient(180deg, #ffffff 30%, #a291ff 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .layer-hero-text p {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: var(--accent-cyan);
+      margin-top: 15px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* Layer 5: Mid-ground Mountains */
+    .layer-mountains-mid {
+      z-index: 5;
+      transform: translateY(calc(var(--scroll-y) * 0.65px)) translateZ(0);
+    }
+
+    /* Layer 6: Foreground Forest Silhouette (Passes standard scrolling speed) */
+    .layer-forest-front {
+      z-index: 6;
+      transform: translateY(calc(var(--scroll-y) * 0.85px)) translateZ(0);
+    }
+
+    /* Helper styling to inject clean SVG vector art safely */
+    .svg-container {
+      position: absolute;
+      bottom: -2px; /* Prevent line seams */
+      left: 0;
+      width: 100%;
+      height: 50%;
+    }
+
+    /* Substantive Content Sections */
+    .content-container {
+      position: relative;
+      z-index: 15;
+      background: var(--bg-deep);
+      padding: 100px 5% 150px 5%;
+    }
+
+    .section-wrapper {
+      max-width: 1200px;
+      margin: 0 auto 180px auto;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      margin-bottom: 20px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 2px;
+    }
+
+    .subtitle {
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    /* Row Content layout with Scroll Animation classes */
+    .reveal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 50px;
+      margin-top: 50px;
+    }
+
+    @media (min-width: 768px) {
+      .reveal-grid {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+
+    .interactive-visual {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      height: 350px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glow-circle {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: var(--accent-purple);
+      filter: blur(80px);
+      border-radius: 50%;
+      animation: drift 8s infinite alternate ease-in-out;
+    }
+
+    @keyframes drift {
+      0% { transform: translate(-30px, -30px); }
+      100% { transform: translate(30px, 30px); }
+    }
+
+    .depth-visualization {
+      position: relative;
+      width: 80%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    /* Mini Simulated Layer Indicators */
+    .vis-layer {
+      height: 45px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      transform: translateX(calc(var(--scroll-y) * var(--m-factor, 0.05) * 1px));
+    }
+    
+    .vis-layer:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--accent-cyan);
+    }
+
+    /* Interactive 3D Card Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .interactive-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 40px 30px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.4s ease, transform 0.2s ease;
+      /* Mouse coordinate dynamic style hook */
+      --mouse-x: 0px;
+      --mouse-y: 0px;
+    }
+
+    /* Smooth light reflection that tracks user's hover coordinates */
+    .interactive-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 50%);
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .interactive-card:hover {
+      border-color: var(--accent-purple);
+    }
+
+    .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Scroll animations: Clean entry fade-ins */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Simple Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 60px 5% 40px 5%;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .scroll-top-btn {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-bottom: 30px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .scroll-top-btn:hover {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: var(--bg-deep);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Dynamic floating ember background layer -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Altitude HUD Gauge on Left/Right viewport -->
+  <div class="hud-gauge">
+    <div class="hud-value" id="hud-value">1,200m</div>
+    <div class="hud-track">
+      <div class="hud-fill" id="hud-fill"></div>
+    </div>
+    <div class="hud-label">ALTITUDE METERS</div>
+  </div>
+
+  <header>
+    <div class="logo">ASCEND</div>
+  </header>
+
+  <!-- Dynamic Parallax Section -->
+  <section class="parallax-hero">
+    <!-- Layer 1: Stars/Sky base -->
+    <div class="layer layer-sky"></div>
+
+    <!-- Layer 2: Radiant Nebula Sun -->
+    <div class="layer layer-sun">
+      <div class="sun-element"></div>
+    </div>
+
+    <!-- Layer 3: Far Mountain Slopes -->
+    <div class="layer layer-mountains-back">
+      <div class="svg-container">
+        <!-- Responsive High-Quality SVG Peaks -->
+        <svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+          <path d="M0,280 L200,140 L450,260 L700,120 L950,250 L1200,130 L1440,260 L1440,320 L0,320 Z" fill="#20113f"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Layer 4: Floating Title (Placed behind near peaks to hide its bottom) -->
+    <div class="layer-hero-text">
+      <h1>THE ASCENT</h1>
+      <p>Scroll down to ascend the heights</p>
+    </div>
+
+    <!-- Layer 5: Mid Mountain Slopes -->
+    <div class="layer layer-mountains-mid">
+      <div class="svg-container">
+        <svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+          <path d="M0,290 L280,180 L580,270 L880,170 L1180,260 L1440,190 L1440,320 L0,320 Z" fill="#140a2c"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Layer 6: Forest/Peaks Foreground (Tuned to move fast for exaggerated perspective) -->
+    <div class="layer layer-forest-front">
+      <div class="svg-container" style="height: 60%;">
+        <svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+          <path d="M0,260 L180,220 L350,280 L520,200 L720,260 L920,190 L1150,270 L1320,210 L1440,250 L1440,320 L0,320 Z" fill="#0c071e"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ground-level Content Container -->
+  <main class="content-container">
+
+    <!-- Section 1: The Core Mechanics -->
+    <section class="section-wrapper scroll-reveal">
+      <div class="subtitle">01 / CONCEPT</div>
+      <h2 class="section-title">The Psychology of Space</h2>
+      <div class="reveal-grid">
+        <div>
+          <p style="font-size: 1.15rem; margin-bottom: 20px;">
+            Parallax design leverages standard ocular physics to simulate optical displacement. By scaling the lateral speed of page elements based on their virtual depth, our human eye translates this speed contrast into physical volume.
+          </p>
+          <p style="color: var(--text-muted); margin-bottom: 20px;">
+            The static structures elements move slowly, while items near the front pass by your vision swiftly. When layered, these simple transitions translate a flat monitor interface into a dynamic space worth exploring.
+          </p>
+        </div>
+        
+        <div class="interactive-visual">
+          <div class="glow-circle"></div>
+          <div class="depth-visualization">
+            <!-- Layers interactively drift relative to scroll -->
+            <div class="vis-layer" style="--m-factor: 0.1;">
+              <span>Sky Layer (Slowest)</span>
+              <span style="color: var(--accent-purple);">Z = -10px</span>
+            </div>
+            <div class="vis-layer" style="--m-factor: 0.35;">
+              <span>Mountain Layer (Medium)</span>
+              <span style="color: var(--accent-purple);">Z = -4px</span>
+            </div>
+            <div class="vis-layer" style="--m-factor: -0.2;">
+              <span>Foreground (Fastest)</span>
+              <span style="color: var(--accent-cyan);">Z = +2px</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Features Grid -->
+    <section class="section-wrapper scroll-reveal">
+      <div class="subtitle">02 / CAPABILITIES</div>
+      <h2 class="section-title">Engineered For Performance</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px; max-width: 600px;">
+        High performance is structural. Smooth animations require avoiding redraw loops and paint recalculations.
+      </p>
+      
+      <div class="cards-grid">
+        <!-- Interactive tilt cards -->
+        <div class="interactive-card">
+          <div class="card-icon">⚡</div>
+          <h3 class="card-title">Hardware Acceleration</h3>
+          <p class="card-desc">Calculated with GPU-friendly translation matrices and modern composite layout tags to maintain a high framerate during scrolling.</p>
+        </div>
+        
+        <div class="interactive-card">
+          <div class="card-icon">🌀</div>
+          <h3 class="card-title">Atmospheric Depth</h3>
+          <p class="card-desc">Generates scroll-synced custom particles that drift and scatter when mouse interactions are registered, creating an active micro-climate.</p>
+        </div>
+        
+        <div class="interactive-card">
+          <div class="card-icon">📐</div>
+          <h3 class="card-title">Clean Geometry</h3>
+          <p class="card-desc">Responsively rendered SVGs transition flawlessly into matching solid section colors, completely preventing visual seams on all device form factors.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <button class="scroll-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">Back to the Peak</button>
+    <p>&copy; The Ascent. Engineered for exceptional interactive web performance.</p>
+  </footer>
+
+  <script>
+    /* ==========================================
+       1. PERFORMANT PARALLAX TRANSFORMATIONS
+       ========================================== */
+    let lastKnownScroll = 0;
+    let ticking = false;
+
+    // Fast-updating rendering calculations run via the CPU/GPU layout loop
+    function updateLayout(scrollPos) {
+      document.documentElement.style.setProperty('--scroll-y', scrollPos);
+      
+      // Update altitude metrics HUD
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = Math.min(scrollPos / maxScroll, 1);
+      
+      // Math: Starts at 1,200 meters and scales up to 4,800 meters
+      const altitudeVal = Math.floor(1200 + (scrollPercent * 3600));
+      document.getElementById('hud-value').innerText = altitudeVal.toLocaleString() + 'm';
+      document.getElementById('hud-fill').style.height = (scrollPercent * 100) + '%';
+    }
+
+    window.addEventListener('scroll', () => {
+      lastKnownScroll = window.scrollY;
+      
+      // RequestAnimationFrame avoids frame drops by avoiding layout-thrashing
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateLayout(lastKnownScroll);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+
+    /* ==========================================
+       2. GLASSMORPHIC CARD CURSOR REFLECTIONS
+       ========================================== */
+    const cards = document.querySelectorAll('.interactive-card');
+    cards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    /* ==========================================
+       3. INTERSECTION OBSERVER FOR SCROLL REVEALS
+       ========================================== */
+    const revealTargets = document.querySelectorAll('.scroll-reveal');
+    const observerOptions = {
+      root: null,
+      threshold: 0.15
+    };
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    revealTargets.forEach(target => revealObserver.observe(target));
+
+    /* ==========================================
+       4. LIGHTWEIGHT EMBERS/PARTICLES FIELD
+       ========================================== */
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mousePos = { x: -1000, y: -1000 };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Particle Object
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + Math.random() * 50;
+        this.size = Math.random() * 2.5 + 0.5;
+        this.speedY = Math.random() * 0.8 + 0.3;
+        this.speedX = Math.random() * 0.4 - 0.2;
+        this.opacity = Math.random() * 0.5 + 0.2;
+      }
+
+      update() {
+        // Accelerate velocity upward relative to scrolling activity
+        const scrollFactor = lastKnownScroll * 0.0005;
+        this.y -= (this.speedY + scrollFactor);
+        this.x += this.speedX;
+
+        // Subtle mouse push interaction
+        const dx = this.x - mousePos.x;
+        const dy = this.y - mousePos.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100) {
+          const force = (100 - dist) / 100;
+          this.x += (dx / dist) * force * 2;
+        }
+
+        if (this.y < 0 || this.x < 0 || this.x > canvas.width) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(157, 78, 221, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    // Initialize particles
+    function initParticles() {
+      particles = [];
+      const density = Math.min(window.innerWidth * 0.06, 60);
+      for (let i = 0; i < density; i++) {
+        particles.push(new Particle());
+      }
+    }
+    initParticles();
+    window.addEventListener('resize', initParticles);
+
+    window.addEventListener('mousemove', (e) => {
+      mousePos.x = e.clientX;
+      mousePos.y = e.clientY;
+    });
+
+    window.addEventListener('mouseout', () => {
+      mousePos = { x: -1000, y: -1000 };
+    });
+
+    // Simple 60FPS animation loop
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
