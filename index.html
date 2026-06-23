@@ -1,758 +1,859 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Ascent | Interactive Parallax Journey</title>
-  
-  <!-- Google Fonts for typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Epic Ascent | Interactive Parallax Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;700&family=Syne:wght@700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-  <style>
-    /* Reset & Base Styling */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    :root {
-      --bg-deep: #0c071e;
-      --bg-card: rgba(22, 13, 49, 0.6);
-      --accent-purple: #9d4edd;
-      --accent-cyan: #06b6d4;
-      --text-main: #f3f0fc;
-      --text-muted: #a5a1b8;
-      --scroll-y: 0;
-    }
+        :root {
+            --bg-dark: #090514;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #d946ef;
+            --accent-gold: #f59e0b;
+            --accent-orange: #f97316;
+        }
 
-    html {
-      scroll-behavior: smooth;
-    }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
 
-    body {
-      background-color: var(--bg-deep);
-      color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      overflow-x: hidden;
-      line-height: 1.6;
-    }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
 
-    /* Scrollbar Styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-deep);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--accent-purple);
-      border-radius: 4px;
-    }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
 
-    /* Altitude HUD Gauge (Interactivity Feature) */
-    .hud-gauge {
-      position: fixed;
-      right: 30px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-      background: rgba(12, 7, 30, 0.7);
-      padding: 20px 12px;
-      border-radius: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 5px;
+        }
 
-    .hud-track {
-      width: 4px;
-      height: 150px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
-      position: relative;
-      overflow: hidden;
-    }
+        .hud-panel {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background: rgba(9, 5, 20, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            padding: 24px 16px;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
 
-    .hud-fill {
-      width: 100%;
-      height: 0%;
-      background: linear-gradient(to top, var(--accent-purple), var(--accent-cyan));
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      transition: height 0.1s ease-out;
-    }
+        .hud-navigation {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-    .hud-label {
-      font-size: 0.75rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      writing-mode: vertical-rl;
-      color: var(--text-muted);
-    }
+        .hud-dot-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
 
-    .hud-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.9rem;
-      color: var(--accent-cyan);
-      font-weight: bold;
-    }
+        .hud-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-    /* Dynamic Particle Background Canvas */
-    #particle-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      pointer-events: none;
-    }
+        .hud-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transform: translateX(10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            white-space: nowrap;
+        }
 
-    /* Navigation Header */
-    header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 30px 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 50;
-    }
+        .hud-dot-container:hover .hud-dot,
+        .hud-dot-container.active .hud-dot {
+            background: var(--active-color, var(--accent-cyan));
+            transform: scale(1.6);
+            box-shadow: 0 0 10px var(--active-color, var(--accent-cyan));
+        }
 
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 800;
-      background: linear-gradient(45deg, #fff, var(--accent-cyan));
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: 1px;
-    }
+        .hud-dot-container:hover .hud-label {
+            opacity: 1;
+            width: 120px;
+            transform: translateX(0);
+            color: var(--text-main);
+        }
 
-    /* Parallax Hero Container */
-    .parallax-hero {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-    }
+        .parallax-section {
+            position: relative;
+            width: 100%;
+            height: 130vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            --progress: 0.5;
+        }
 
-    /* Common layer styles */
-    .layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: bottom center;
-      will-change: transform;
-      pointer-events: none;
-    }
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            will-change: transform;
+            transform: translateY(calc((var(--progress) - 0.5) * var(--speed, 0) * 350px)) translateZ(0);
+        }
 
-    /* Individual Parallax Layers & Speeds */
-    
-    /* Layer 1: Sky (Moves extremely slow) */
-    .layer-sky {
-      background: linear-gradient(to bottom, #09011a, #1a0f3c);
-      z-index: 1;
-      transform: translateY(calc(var(--scroll-y) * 0.15px)) translateZ(0);
-    }
+        .section-content {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 900px;
+            padding: 50px 40px;
+            background: rgba(9, 5, 20, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px);
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            margin: 0 20px;
+            will-change: transform, opacity;
+            transform: translateY(calc((var(--progress) - 0.5) * var(--speed, 0) * 350px)) translateZ(0);
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-    /* Layer 2: Cosmic Sun / Moon */
-    .layer-sun {
-      z-index: 2;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transform: translateY(calc(var(--scroll-y) * 0.35px)) translateZ(0);
-    }
-    .sun-element {
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, #f72585 0%, rgba(247, 37, 133, 0) 70%);
-      border-radius: 50%;
-      filter: blur(15px);
-      opacity: 0.85;
-      margin-bottom: 10%;
-    }
+        .parallax-section.visible .section-content {
+            opacity: 1;
+        }
 
-    /* Layer 3: Far Mountain Peaks */
-    .layer-mountains-back {
-      z-index: 3;
-      transform: translateY(calc(var(--scroll-y) * 0.5px)) translateZ(0);
-    }
+        .section-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            color: var(--theme-color, var(--accent-cyan));
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
 
-    /* Layer 4: Interactive Hero Typography */
-    .layer-hero-text {
-      position: relative;
-      z-index: 4;
-      text-align: center;
-      transform: translateY(calc(var(--scroll-y) * 0.55px)) translateZ(0);
-      max-width: 90%;
-    }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            line-height: 1.1;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ffffff, var(--theme-color, var(--accent-cyan)));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .layer-hero-text h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(3.5rem, 10vw, 8rem);
-      font-weight: 800;
-      line-height: 0.9;
-      letter-spacing: -2px;
-      background: linear-gradient(180deg, #ffffff 30%, #a291ff 100%);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
+        .section-desc {
+            font-size: clamp(1rem, 2vw, 1.1rem);
+            color: var(--text-muted);
+        }
 
-    .layer-hero-text p {
-      font-size: clamp(1rem, 2.5vw, 1.3rem);
-      color: var(--accent-cyan);
-      margin-top: 15px;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
+        .svg-wrapper {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
 
-    /* Layer 5: Mid-ground Mountains */
-    .layer-mountains-mid {
-      z-index: 5;
-      transform: translateY(calc(var(--scroll-y) * 0.65px)) translateZ(0);
-    }
+        #forest-section {
+            background: linear-gradient(180deg, #1b120c 0%, #2e1c0c 100%);
+            --theme-color: var(--accent-gold);
+        }
 
-    /* Layer 6: Foreground Forest Silhouette (Passes standard scrolling speed) */
-    .layer-forest-front {
-      z-index: 6;
-      transform: translateY(calc(var(--scroll-y) * 0.85px)) translateZ(0);
-    }
+        #alpine-section {
+            background: linear-gradient(180deg, #1d0e2e 0%, #11061f 100%);
+            --theme-color: #ec4899;
+        }
 
-    /* Helper styling to inject clean SVG vector art safely */
-    .svg-container {
-      position: absolute;
-      bottom: -2px; /* Prevent line seams */
-      left: 0;
-      width: 100%;
-      height: 50%;
-    }
+        #cloud-section {
+            background: linear-gradient(180deg, #0e1f38 0%, #1b3d6b 100%);
+            --theme-color: var(--accent-cyan);
+        }
 
-    /* Substantive Content Sections */
-    .content-container {
-      position: relative;
-      z-index: 15;
-      background: var(--bg-deep);
-      padding: 100px 5% 150px 5%;
-    }
+        #ocean-section {
+            background: linear-gradient(180deg, #050d1a 0%, #020710 100%);
+            --theme-color: #38bdf8;
+        }
 
-    .section-wrapper {
-      max-width: 1200px;
-      margin: 0 auto 180px auto;
-    }
+        #lava-section {
+            background: linear-gradient(180deg, #140404 0%, #260808 100%);
+            --theme-color: var(--accent-orange);
+        }
 
-    .section-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      margin-bottom: 20px;
-      position: relative;
-      display: inline-block;
-    }
+        #space-section {
+            background: linear-gradient(180deg, #050212 0%, #0c041f 100%);
+            --theme-color: var(--accent-purple);
+        }
 
-    .section-title::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 0;
-      width: 60px;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
-      border-radius: 2px;
-    }
+        #global-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
 
-    .subtitle {
-      color: var(--accent-cyan);
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
-    }
+        footer {
+            position: relative;
+            z-index: 10;
+            padding: 60px 20px;
+            text-align: center;
+            background: #050212;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
 
-    /* Row Content layout with Scroll Animation classes */
-    .reveal-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 50px;
-      margin-top: 50px;
-    }
+        .layout-split {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            text-align: left;
+        }
 
-    @media (min-width: 768px) {
-      .reveal-grid {
-        grid-template-columns: 1.2fr 0.8fr;
-      }
-    }
+        @media (min-width: 768px) {
+            .layout-split {
+                grid-template-columns: 1.2fr 1fr;
+                align-items: center;
+            }
+        }
 
-    .interactive-visual {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 24px;
-      height: 350px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
+        .split-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-    .glow-circle {
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      background: var(--accent-purple);
-      filter: blur(80px);
-      border-radius: 50%;
-      animation: drift 8s infinite alternate ease-in-out;
-    }
+        .split-right {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-    @keyframes drift {
-      0% { transform: translate(-30px, -30px); }
-      100% { transform: translate(30px, 30px); }
-    }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
 
-    .depth-visualization {
-      position: relative;
-      width: 80%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 15px;
-    }
+        .info-pill {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-    /* Mini Simulated Layer Indicators */
-    .vis-layer {
-      height: 45px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      transition: all 0.3s ease;
-      transform: translateX(calc(var(--scroll-y) * var(--m-factor, 0.05) * 1px));
-    }
-    
-    .vis-layer:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--accent-cyan);
-    }
+        .info-pill .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-    /* Interactive 3D Card Grid */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
-      margin-top: 50px;
-    }
+        .info-pill .value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
 
-    .interactive-card {
-      background: var(--bg-card);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      padding: 40px 30px;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      transition: border-color 0.4s ease, transform 0.2s ease;
-      /* Mouse coordinate dynamic style hook */
-      --mouse-x: 0px;
-      --mouse-y: 0px;
-    }
+        .info-pill .bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
 
-    /* Smooth light reflection that tracks user's hover coordinates */
-    .interactive-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 50%);
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: 1;
-    }
+        .info-pill .bar .fill {
+            height: 100%;
+            border-radius: 3px;
+        }
 
-    .interactive-card:hover {
-      border-color: var(--accent-purple);
-    }
+        .gear-deck {
+            gap: 10px;
+        }
 
-    .card-icon {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      display: inline-block;
-    }
+        .gear-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
 
-    .card-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.4rem;
-      margin-bottom: 12px;
-    }
+        .gear-btn:hover,
+        .gear-btn.active {
+            background: #ec4899;
+            border-color: #ec4899;
+            color: var(--bg-dark);
+            font-weight: bold;
+        }
 
-    .card-desc {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
+        .gear-stats {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 0.9rem;
+        }
 
-    /* Scroll animations: Clean entry fade-ins */
-    .scroll-reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+        .gear-stats h4 {
+            color: #ec4899;
+            margin-bottom: 5px;
+            font-family: 'Syne', sans-serif;
+        }
 
-    .scroll-reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+        .layout-asymmetric {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            text-align: left;
+        }
 
-    /* Simple Footer */
-    footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 60px 5% 40px 5%;
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
+        @media (min-width: 768px) {
+            .layout-asymmetric {
+                grid-template-columns: 1.1fr 1fr;
+                align-items: center;
+            }
+        }
 
-    .scroll-top-btn {
-      background: none;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-main);
-      padding: 10px 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      margin-bottom: 30px;
-      font-family: inherit;
-      transition: all 0.3s ease;
-    }
+        .asym-right {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .scroll-top-btn:hover {
-      background: var(--accent-cyan);
-      border-color: var(--accent-cyan);
-      color: var(--bg-deep);
-    }
-  </style>
+        .cloud-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            max-width: 320px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .cloud-card .wave-decor {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+            line-height: 1;
+            margin-bottom: 15px;
+        }
+
+        .cloud-card .quote {
+            font-style: italic;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 15px;
+        }
+
+        .cloud-card .meta {
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .sonar-panel {
+            align-items: center;
+            text-align: center;
+        }
+
+        .sonar-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid #38bdf8;
+            position: relative;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 80%);
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .sonar-sweep {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: conic-gradient(from 0deg, rgba(56, 189, 248, 0.4) 0deg, transparent 90deg);
+            transform-origin: center;
+            animation: sweep 4s linear infinite;
+        }
+
+        @keyframes sweep {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .sonar-dot {
+            width: 8px;
+            height: 8px;
+            background: #38bdf8;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 8px #38bdf8;
+            animation: pulse-dot 1.5s ease-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.6);
+                opacity: 1;
+            }
+        }
+
+        .sonar-controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .sonar-controls button {
+            flex: 1;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid #38bdf8;
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .sonar-controls button:hover {
+            background: #38bdf8;
+            color: var(--bg-dark);
+            font-weight: bold;
+        }
+
+        #sonar-log {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            min-height: 40px;
+            text-align: center;
+        }
+
+        .thermal-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .slider-group {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--accent-orange);
+            font-family: 'Syne', sans-serif;
+        }
+
+        .cavern-warning {
+            font-size: 0.8rem;
+            color: var(--accent-orange);
+            text-align: center;
+            border-left: 2px solid var(--accent-orange);
+            padding-left: 10px;
+            font-style: italic;
+        }
+
+        .space-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .constellation {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .star-point {
+            flex: 1;
+            background: rgba(217, 70, 239, 0.1);
+            border: 1px solid var(--accent-purple);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .star-point:hover {
+            background: var(--accent-purple);
+            color: var(--bg-dark);
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--accent-purple);
+        }
+
+        .space-log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        #space-output {
+            font-size: 0.9rem;
+            text-align: center;
+            color: var(--accent-purple);
+        }
+    </style>
 </head>
-<body>
 
-  <!-- Dynamic floating ember background layer -->
-  <canvas id="particle-canvas"></canvas>
-
-  <!-- Altitude HUD Gauge on Left/Right viewport -->
-  <div class="hud-gauge">
-    <div class="hud-value" id="hud-value">1,200m</div>
-    <div class="hud-track">
-      <div class="hud-fill" id="hud-fill"></div>
+<body><canvas id="global-canvas"></canvas>
+    <div class="hud-panel">
+        <div class="hud-navigation"><a href="#forest-section" class="hud-dot-container active"
+                data-target="forest-section" style="--active-color: var(--accent-gold);">
+                <div class="hud-dot"></div><span class="hud-label">01. Canopy</span>
+            </a><a href="#alpine-section" class="hud-dot-container" data-target="alpine-section"
+                style="--active-color: #ec4899;">
+                <div class="hud-dot"></div><span class="hud-label">02. Summit</span>
+            </a><a href="#cloud-section" class="hud-dot-container" data-target="cloud-section"
+                style="--active-color: var(--accent-cyan);">
+                <div class="hud-dot"></div><span class="hud-label">03. Clouds</span>
+            </a><a href="#ocean-section" class="hud-dot-container" data-target="ocean-section"
+                style="--active-color: #38bdf8;">
+                <div class="hud-dot"></div><span class="hud-label">04. Abyss</span>
+            </a><a href="#lava-section" class="hud-dot-container" data-target="lava-section"
+                style="--active-color: var(--accent-orange);">
+                <div class="hud-dot"></div><span class="hud-label">05. Cavern</span>
+            </a><a href="#space-section" class="hud-dot-container" data-target="space-section"
+                style="--active-color: var(--accent-purple);">
+                <div class="hud-dot"></div><span class="hud-label">06. Space</span>
+            </a></div>
     </div>
-    <div class="hud-label">ALTITUDE METERS</div>
-  </div>
-
-  <header>
-    <div class="logo">ASCEND</div>
-  </header>
-
-  <!-- Dynamic Parallax Section -->
-  <section class="parallax-hero">
-    <!-- Layer 1: Stars/Sky base -->
-    <div class="layer layer-sky"></div>
-
-    <!-- Layer 2: Radiant Nebula Sun -->
-    <div class="layer layer-sun">
-      <div class="sun-element"></div>
-    </div>
-
-    <!-- Layer 3: Far Mountain Slopes -->
-    <div class="layer layer-mountains-back">
-      <div class="svg-container">
-        <!-- Responsive High-Quality SVG Peaks -->
-        <svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M0,280 L200,140 L450,260 L700,120 L950,250 L1200,130 L1440,260 L1440,320 L0,320 Z" fill="#20113f"/>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Layer 4: Floating Title (Placed behind near peaks to hide its bottom) -->
-    <div class="layer-hero-text">
-      <h1>THE ASCENT</h1>
-      <p>Scroll down to ascend the heights</p>
-    </div>
-
-    <!-- Layer 5: Mid Mountain Slopes -->
-    <div class="layer layer-mountains-mid">
-      <div class="svg-container">
-        <svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M0,290 L280,180 L580,270 L880,170 L1180,260 L1440,190 L1440,320 L0,320 Z" fill="#140a2c"/>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Layer 6: Forest/Peaks Foreground (Tuned to move fast for exaggerated perspective) -->
-    <div class="layer layer-forest-front">
-      <div class="svg-container" style="height: 60%;">
-        <svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
-          <path d="M0,260 L180,220 L350,280 L520,200 L720,260 L920,190 L1150,270 L1320,210 L1440,250 L1440,320 L0,320 Z" fill="#0c071e"/>
-        </svg>
-      </div>
-    </div>
-  </section>
-
-  <!-- Ground-level Content Container -->
-  <main class="content-container">
-
-    <!-- Section 1: The Core Mechanics -->
-    <section class="section-wrapper scroll-reveal">
-      <div class="subtitle">01 / CONCEPT</div>
-      <h2 class="section-title">The Psychology of Space</h2>
-      <div class="reveal-grid">
-        <div>
-          <p style="font-size: 1.15rem; margin-bottom: 20px;">
-            Parallax design leverages standard ocular physics to simulate optical displacement. By scaling the lateral speed of page elements based on their virtual depth, our human eye translates this speed contrast into physical volume.
-          </p>
-          <p style="color: var(--text-muted); margin-bottom: 20px;">
-            The static structures elements move slowly, while items near the front pass by your vision swiftly. When layered, these simple transitions translate a flat monitor interface into a dynamic space worth exploring.
-          </p>
+    <section class="parallax-section" id="forest-section">
+        <div class="layer" style="--speed: 0.2;">
+            <div style="position: absolute; top: 15%; left: 30%; width: 500px; height: 500px; background:
+                radial-gradient(circle, #f59e0b 0%, rgba(245, 158, 11, 0) 70%); filter: blur(40px); opacity: 0.3;">
+            </div>
         </div>
-        
-        <div class="interactive-visual">
-          <div class="glow-circle"></div>
-          <div class="depth-visualization">
-            <!-- Layers interactively drift relative to scroll -->
-            <div class="vis-layer" style="--m-factor: 0.1;">
-              <span>Sky Layer (Slowest)</span>
-              <span style="color: var(--accent-purple);">Z = -10px</span>
-            </div>
-            <div class="vis-layer" style="--m-factor: 0.35;">
-              <span>Mountain Layer (Medium)</span>
-              <span style="color: var(--accent-purple);">Z = -4px</span>
-            </div>
-            <div class="vis-layer" style="--m-factor: -0.2;">
-              <span>Foreground (Fastest)</span>
-              <span style="color: var(--accent-cyan);">Z = +2px</span>
-            </div>
-          </div>
+        <div class="layer" style="--speed: 0.45;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,240 Q360,160 720,240 T1440,200 L1440,320 L0,320 Z" fill="#3d230d" fill-opacity="0.8" />
+                </svg></div>
         </div>
-      </div>
+        <div class="section-content layout-split" style="--speed: 0.55;">
+            <div class="split-left">
+                <div class="section-num">Stage 01</div>
+                <h2 class="section-title">Forest Canopy</h2>
+                <p class="section-desc">We begin our journey on the forest floor. Golden autumn embers drift slowly
+                    through the air as soft valleys curve gently into the background.</p>
+            </div>
+            <div class="split-right grid-cards">
+                <div class="info-pill"><span class="label">Canopy Cover</span><span class="value">82%</span>
+                    <div class="bar">
+                        <div class="fill" style="width: 82%; background: var(--accent-gold);"></div>
+                    </div>
+                </div>
+                <div class="info-pill"><span class="label">Relative Humidity</span><span class="value">65%</span>
+                    <div class="bar">
+                        <div class="fill" style="width: 65%; background: var(--accent-gold);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.7;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,280 L180,240 L360,290 L540,230 L720,280 L900,220 L1080,270 L1260,210 L1440,260
+                        L1440,320 L0,320 Z" fill="#231204" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: -0.25;">
+            <div class="svg-wrapper" style="height: 120%; bottom: -10%;"><svg viewBox="0 0 1440 320" width="100%"
+                    height="100%" preserveAspectRatio="none">
+                    <path d="M0,0 Q360,120 720,30 T1440,0 L1440,10 L0,10 Z" fill="#120801" />
+                </svg></div>
+        </div>
     </section>
-
-    <!-- Section 2: Features Grid -->
-    <section class="section-wrapper scroll-reveal">
-      <div class="subtitle">02 / CAPABILITIES</div>
-      <h2 class="section-title">Engineered For Performance</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px; max-width: 600px;">
-        High performance is structural. Smooth animations require avoiding redraw loops and paint recalculations.
-      </p>
-      
-      <div class="cards-grid">
-        <!-- Interactive tilt cards -->
-        <div class="interactive-card">
-          <div class="card-icon">⚡</div>
-          <h3 class="card-title">Hardware Acceleration</h3>
-          <p class="card-desc">Calculated with GPU-friendly translation matrices and modern composite layout tags to maintain a high framerate during scrolling.</p>
+    <section class="parallax-section" id="alpine-section">
+        <div class="layer" style="--speed: 0.15;">
+            <div style="position: absolute; top: 10%; right: 15%; width: 450px; height: 450px; background:
+                radial-gradient(circle, #ec4899 0%, rgba(236, 72, 153, 0) 70%); filter: blur(50px); opacity: 0.35;">
+            </div>
         </div>
-        
-        <div class="interactive-card">
-          <div class="card-icon">🌀</div>
-          <h3 class="card-title">Atmospheric Depth</h3>
-          <p class="card-desc">Generates scroll-synced custom particles that drift and scatter when mouse interactions are registered, creating an active micro-climate.</p>
+        <div class="layer" style="--speed: 0.45;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,220 L200,160 L450,250 L700,140 L950,230 L1200,150 L1440,220 L1440,320 L0,320 Z"
+                        fill="#31144c" fill-opacity="0.85" />
+                </svg></div>
         </div>
-        
-        <div class="interactive-card">
-          <div class="card-icon">📐</div>
-          <h3 class="card-title">Clean Geometry</h3>
-          <p class="card-desc">Responsively rendered SVGs transition flawlessly into matching solid section colors, completely preventing visual seams on all device form factors.</p>
+        <div class="section-content layout-split" style="--speed: 0.55;">
+            <div class="split-left">
+                <div class="section-num">Stage 02</div>
+                <h2 class="section-title">Alpine Summit</h2>
+                <p class="section-desc">Upwards into the frost line. Select your summit gear to view structural
+                    integrity calculations in real-time.</p>
+            </div>
+            <div class="split-right gear-deck"><button class="gear-btn active" onclick="selectGear('harness',
+                    this)">Safety Harness</button><button class="gear-btn" onclick="selectGear('oxygen',
+                    this)">Oxygen Kit</button>
+                <div class="gear-stats">
+                    <h4 id="gear-name">Survival Harness</h4>
+                    <p id="gear-desc">Reinforced nylon mesh with a 24kN tensile strength rating. Standard safety
+                        baseline.</p>
+                </div>
+            </div>
         </div>
-      </div>
+        <div class="layer" style="--speed: 0.75;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,260 L300,190 L750,280 L1100,180 L1440,260 L1440,320 L0,320 Z" fill="#1f0b33" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: -0.3;">
+            <div class="svg-wrapper" style="height: 125%; bottom: -12%;"><svg viewBox="0 0 1440 320" width="100%"
+                    height="100%" preserveAspectRatio="none">
+                    <path d="M-50,320 L120,200 L250,320 Z M1200,320 L1350,180 L1490,320 Z" fill="#0d0217" />
+                </svg></div>
+        </div>
     </section>
-
-  </main>
-
-  <footer>
-    <button class="scroll-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">Back to the Peak</button>
-    <p>&copy; The Ascent. Engineered for exceptional interactive web performance.</p>
-  </footer>
-
-  <script>
-    /* ==========================================
-       1. PERFORMANT PARALLAX TRANSFORMATIONS
-       ========================================== */
-    let lastKnownScroll = 0;
-    let ticking = false;
-
-    // Fast-updating rendering calculations run via the CPU/GPU layout loop
-    function updateLayout(scrollPos) {
-      document.documentElement.style.setProperty('--scroll-y', scrollPos);
-      
-      // Update altitude metrics HUD
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = Math.min(scrollPos / maxScroll, 1);
-      
-      // Math: Starts at 1,200 meters and scales up to 4,800 meters
-      const altitudeVal = Math.floor(1200 + (scrollPercent * 3600));
-      document.getElementById('hud-value').innerText = altitudeVal.toLocaleString() + 'm';
-      document.getElementById('hud-fill').style.height = (scrollPercent * 100) + '%';
-    }
-
-    window.addEventListener('scroll', () => {
-      lastKnownScroll = window.scrollY;
-      
-      // RequestAnimationFrame avoids frame drops by avoiding layout-thrashing
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          updateLayout(lastKnownScroll);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    });
-
-    /* ==========================================
-       2. GLASSMORPHIC CARD CURSOR REFLECTIONS
-       ========================================== */
-    const cards = document.querySelectorAll('.interactive-card');
-    cards.forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty('--mouse-x', `${x}px`);
-        card.style.setProperty('--mouse-y', `${y}px`);
-      });
-    });
-
-    /* ==========================================
-       3. INTERSECTION OBSERVER FOR SCROLL REVEALS
-       ========================================== */
-    const revealTargets = document.querySelectorAll('.scroll-reveal');
-    const observerOptions = {
-      root: null,
-      threshold: 0.15
-    };
-
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, observerOptions);
-
-    revealTargets.forEach(target => revealObserver.observe(target));
-
-    /* ==========================================
-       4. LIGHTWEIGHT EMBERS/PARTICLES FIELD
-       ========================================== */
-    const canvas = document.getElementById('particle-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    let mousePos = { x: -1000, y: -1000 };
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // Particle Object
-    class Particle {
-      constructor() {
-        this.reset();
-      }
-
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = canvas.height + Math.random() * 50;
-        this.size = Math.random() * 2.5 + 0.5;
-        this.speedY = Math.random() * 0.8 + 0.3;
-        this.speedX = Math.random() * 0.4 - 0.2;
-        this.opacity = Math.random() * 0.5 + 0.2;
-      }
-
-      update() {
-        // Accelerate velocity upward relative to scrolling activity
-        const scrollFactor = lastKnownScroll * 0.0005;
-        this.y -= (this.speedY + scrollFactor);
-        this.x += this.speedX;
-
-        // Subtle mouse push interaction
-        const dx = this.x - mousePos.x;
-        const dy = this.y - mousePos.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 100) {
-          const force = (100 - dist) / 100;
-          this.x += (dx / dist) * force * 2;
-        }
-
-        if (this.y < 0 || this.x < 0 || this.x > canvas.width) {
-          this.reset();
-        }
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(157, 78, 221, ${this.opacity})`;
-        ctx.fill();
-      }
-    }
-
-    // Initialize particles
-    function initParticles() {
-      particles = [];
-      const density = Math.min(window.innerWidth * 0.06, 60);
-      for (let i = 0; i < density; i++) {
-        particles.push(new Particle());
-      }
-    }
-    initParticles();
-    window.addEventListener('resize', initParticles);
-
-    window.addEventListener('mousemove', (e) => {
-      mousePos.x = e.clientX;
-      mousePos.y = e.clientY;
-    });
-
-    window.addEventListener('mouseout', () => {
-      mousePos = { x: -1000, y: -1000 };
-    });
-
-    // Simple 60FPS animation loop
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.update();
-        p.draw();
-      });
-      requestAnimationFrame(animate);
-    }
-    animate();
-  </script>
+    <section class="parallax-section" id="cloud-section">
+        <div class="layer" style="--speed: 0.2;">
+            <div style="position: absolute; top: 15%; left: 50%; width: 400px; height: 400px; background:
+                radial-gradient(circle, #fef08a 0%, rgba(254, 240, 138, 0) 70%); filter: blur(60px); opacity: 0.25;">
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.4;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,240 Q300,180 600,240 T1200,220 T1440,230 L1440,320 L0,320 Z" fill="#2c598f"
+                        fill-opacity="0.5" />
+                </svg></div>
+        </div>
+        <div class="section-content layout-asymmetric" style="--speed: 0.55;">
+            <div class="asym-left">
+                <div class="section-num">Stage 03</div>
+                <h2 class="section-title">Stratosphere</h2>
+                <p class="section-desc">Passing beyond terrestrial heights. Floating clouds gather underneath while
+                    brilliant rays of golden starlight drift lazily.</p>
+            </div>
+            <div class="asym-right">
+                <div class="cloud-card">
+                    <div class="wave-decor">&sim;&sim;&sim;</div>
+                    <p class="quote">"The air up here is pure, light, and invigorating."</p><span class="meta">Pressure:
+                        120 hPa</span>
+                </div>
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.7;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,270 Q300,210 650,270 T1300,250 T1440,260 L1440,320 L0,320 Z" fill="#18355c" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: -0.25;">
+            <div class="svg-wrapper" style="height: 120%; bottom: -10%;"><svg viewBox="0 0 1440 320" width="100%"
+                    height="100%" preserveAspectRatio="none">
+                    <path d="M0,290 Q400,230 850,290 T1440,280 L1440,320 L0,320 Z" fill="#0c1f38" />
+                </svg></div>
+        </div>
+    </section>
+    <section class="parallax-section" id="ocean-section">
+        <div class="layer" style="--speed: 0.15;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <polygon points="200,0 350,0 600,320 400,320" fill="#38bdf8" fill-opacity="0.08" />
+                    <polygon points="900,0 1100,0 1300,320 1050,320" fill="#38bdf8" fill-opacity="0.06" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: 0.45;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,260 C150,230 250,300 450,280 C650,250 800,320 1000,290 T1440,310 L1440,320 L0,320 Z"
+                        fill="#051226" fill-opacity="0.7" />
+                </svg></div>
+        </div>
+        <div class="section-content layout-split" style="--speed: 0.55;">
+            <div class="split-left">
+                <div class="section-num">Stage 04</div>
+                <h2 class="section-title">Abyssal Trench</h2>
+                <p class="section-desc">Plunging deep beneath the ocean swell. Click a depth coordinate to scan the
+                    deep trenches.</p>
+            </div>
+            <div class="split-right sonar-panel">
+                <div class="sonar-circle">
+                    <div class="sonar-sweep"></div>
+                    <div class="sonar-dot" style="top:30%; left:60%;"></div>
+                </div>
+                <div class="sonar-controls"><button onclick="scanDepth(4000, 'Bathyal Zone' )">4000m</button><button
+                        onclick="scanDepth(8000, 'Hadal Zone' )">8000m</button></div>
+                <p id="sonar-log">Radar: Active Scanner</p>
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.75;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,280 C200,250 400,320 650,290 C900,260 1150,340 1440,310 L1440,320 L0,320 Z"
+                        fill="#030b1a" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: -0.3;">
+            <div class="svg-wrapper" style="height: 120%; bottom: -10%;"><svg viewBox="0 0 1440 320" width="100%"
+                    height="100%" preserveAspectRatio="none">
+                    <path d="M80,320 C130,220 30,140 100,50 C50,140 160,220 100,320 Z" fill="#01050d" />
+                </svg></div>
+        </div>
+    </section>
+    <section class="parallax-section" id="lava-section">
+        <div class="layer" style="--speed: 0.2;">
+            <div style="position: absolute; bottom: 5%; left: 10%; width: 550px; height: 450px; background:
+                radial-gradient(circle, #ea580c 0%, rgba(234, 88, 12, 0) 70%); filter: blur(40px); opacity: 0.3;">
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.45;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,260 L180,200 L400,270 L700,180 L1050,260 L1440,200 L1440,320 L0,320 Z" fill="#400e0e"
+                        fill-opacity="0.8" />
+                </svg></div>
+        </div>
+        <div class="section-content layout-split" style="--speed: 0.55;">
+            <div class="split-left">
+                <div class="section-num">Stage 05</div>
+                <h2 class="section-title">Magma Cavern</h2>
+                <p class="section-desc">Subterranean depths. Adjust the core thermal pressure slider to directly
+                    influence particle flow.</p>
+            </div>
+            <div class="split-right thermal-panel">
+                <div class="slider-group"><label>Thermal Pressure: <span id="pressure-val">50
+                            GPa</span></label><input type="range" id="pressure-slider" min="10" max="100" value="50"
+                        style="width:100%; margin:10px 0; accent-color:var(--accent-orange);"></div>
+                <p class="cavern-warning">Warning: Flow rate scaled dynamically.</p>
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.75;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <path d="M0,280 L250,220 L600,300 L950,200 L1250,280 L1440,220 L1440,320 L0,320 Z" fill="#1f0505" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: -0.25;">
+            <div class="svg-wrapper" style="height: 120%; bottom: -10%;"><svg viewBox="0 0 1440 320" width="100%"
+                    height="100%" preserveAspectRatio="none">
+                    <path d="M0,0 L200,60 L400,0 L600,70 L800,0 L1100,60 L1440,0 Z" fill="#0f0101" />
+                </svg></div>
+        </div>
+    </section>
+    <section class="parallax-section" id="space-section">
+        <div class="layer" style="--speed: 0.15;">
+            <div style="position: absolute; top: 15%; right: 25%; width: 280px; height: 280px; border-radius: 50%;
+                background: #070313; box-shadow: -15px -15px 50px rgba(217, 70, 239, 0.4), inset 10px 10px 30px
+                rgba(255, 255, 255, 0.05);"></div>
+        </div>
+        <div class="layer" style="--speed: 0.45;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%" preserveAspectRatio="none">
+                    <circle cx="200" cy="150" r="8" fill="#d946ef" fill-opacity="0.3" />
+                    <circle cx="600" cy="90" r="14" fill="#d946ef" fill-opacity="0.2" />
+                    <circle cx="1200" cy="250" r="11" fill="#d946ef" fill-opacity="0.25" />
+                </svg></div>
+        </div>
+        <div class="section-content layout-split" style="--speed: 0.55;">
+            <div class="split-left">
+                <div class="section-num">Stage 06</div>
+                <h2 class="section-title">Cosmic Void</h2>
+                <p class="section-desc">Traverse astronomical boundaries. Click planetary systems to query orbital
+                    metrics.</p>
+            </div>
+            <div class="split-right space-panel">
+                <div class="constellation"><button class="star-point" onclick="showCosmos('Aegis-9 System: Orbiting a magenta magnetar.')">System Alpha</button><button class="star-point" onclick="showCosmos('Nix Belt: Densely populated carbon asteroid belt.')">System Beta</button>
+                </div>
+                <div class="space-log">
+                    <p id="space-output">Inspector: Ready for signal input.</p>
+                </div>
+            </div>
+        </div>
+        <div class="layer" style="--speed: 0.75;">
+            <div class="svg-wrapper"><svg viewBox="0 0 1440 320" width="100%" height="100%"
+                    preserveAspectRatio="none">
+                    <polygon points="120,220 140,200 160,230 140,250" fill="#13072b" />
+                    <polygon points="1280,150 1310,130 1320,160 1290,180" fill="#13072b" />
+                </svg></div>
+        </div>
+        <div class="layer" style="--speed: -0.35;">
+            <div class="svg-wrapper" style="height: 120%; bottom: -10%;"><svg viewBox="0 0 1440 320"
+                    width="100%" height="100%" preserveAspectRatio="none">
+                    <circle cx="150" cy="50" r="40" fill="#070313" opacity="0.9" />
+                    <circle cx="1350" cy="280" r="70" fill="#070313" opacity="0.9" />
+                </svg></div>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; The Ascent. Engineered for smooth, multi-zone interactive performance.</p>
+    </footer>
+    <script>const sections = document.querySelectorAll('.parallax-section'); const hudLinks = document.querySelectorAll('.hud-dot-container'); let cachedSections = []; let lastKnownScroll = 0; let ticking = false; let activeSectionIndex = 0; function calculateLayoutMetrics() { const scrollY = window.scrollY; cachedSections = Array.from(sections).map((sec, idx) => { const rect = sec.getBoundingClientRect(); return { element: sec, top: rect.top + scrollY, height: rect.height, index: idx }; }); } window.addEventListener('load', () => { calculateLayoutMetrics(); renderParallax(window.scrollY); }); window.addEventListener('resize', () => { calculateLayoutMetrics(); renderParallax(window.scrollY); }); function renderParallax(scrollPos) { const viewportHeight = window.innerHeight; for (let i = 0; i < cachedSections.length; i++) { const sec = cachedSections[i]; const relativeTop = sec.top - scrollPos; if (relativeTop < viewportHeight && relativeTop + sec.height > 0) { const scrolledAmount = viewportHeight - relativeTop; const progress = Math.max(0, Math.min(1, scrolledAmount / (viewportHeight + sec.height))); sec.element.style.setProperty('--progress', progress); if (relativeTop <= viewportHeight / 2 && relativeTop + sec.height >= viewportHeight / 2) { sec.element.classList.add('visible'); activeSectionIndex = sec.index; hudLinks.forEach(link => link.classList.remove('active')); hudLinks[sec.index].classList.add('active'); } else { sec.element.classList.remove('visible'); } } } } window.addEventListener('scroll', () => { lastKnownScroll = window.scrollY; if (!ticking) { window.requestAnimationFrame(() => { renderParallax(lastKnownScroll); ticking = false; }); ticking = true; } }, { passive: true }); const canvas = document.getElementById('global-canvas'); const ctx = canvas.getContext('2d'); let particles = []; const PARTICLE_SETTINGS = [{ color: "245, 158, 11", size: 3, speedY: -0.3, speedX: 0.2, drift: 0.1 }, { color: "255, 255, 255", size: 2, speedY: 0.5, speedX: -0.1, drift: 0.05 }, { color: "254, 240, 138", size: 2, speedY: -0.4, speedX: 0, drift: 0.1 }, { color: "56, 189, 248", size: 2.5, speedY: -0.2, speedX: 0.05, drift: 0.3 }, { color: "249, 115, 22", size: 3.5, speedY: -0.8, speedX: -0.3, drift: 0.2 }, { color: "217, 70, 239", size: 1.5, speedY: -0.1, speedX: 0.1, drift: 0.05 } ]; function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; } window.addEventListener('resize', resizeCanvas); resizeCanvas(); class DynamicParticle { constructor() { this.reset(); this.y = Math.random() * canvas.height; } reset() { this.x = Math.random() * canvas.width; this.y = canvas.height + Math.random() * 50; this.size = Math.random() * 1.5 + 0.5; this.opacity = Math.random() * 0.6 + 0.15; const config = PARTICLE_SETTINGS[activeSectionIndex]; this.speedY = (Math.random() * 0.4 + 0.8) * config.speedY; this.speedX = (Math.random() * 0.4 + 0.8) * config.speedX; } update() { const config = PARTICLE_SETTINGS[activeSectionIndex]; this.y += this.speedY; this.x += this.speedX + Math.sin(this.y * 0.01) * config.drift; if (this.y < -50 || this.y > canvas.height + 50 || this.x < -50 || this.x > canvas.width + 50) { this.reset(); } } draw() { const config = PARTICLE_SETTINGS[activeSectionIndex]; ctx.beginPath(); ctx.arc(this.x, this.y, this.size * config.size, 0, Math.PI * 2); ctx.fillStyle = "rgba(" + config.color + ", " + this.opacity + ")"; ctx.fill(); } } function initParticles() { particles = []; const count = window.innerWidth < 768 ? 25 : 60; for (let i = 0; i < count; i++) { particles.push(new DynamicParticle()); } } initParticles(); window.addEventListener('resize', initParticles); function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(); } requestAnimationFrame(animate); } animate(); function selectGear(type, btn) { const name = document.getElementById('gear-name'); const desc = document.getElementById('gear-desc'); document.querySelectorAll('.gear-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); if (type === 'harness') { name.innerText = 'Survival Harness'; desc.innerText = 'Reinforced nylon mesh with a 24kN tensile strength rating. Standard safety baseline.'; } else { name.innerText = 'Oxygen Suppressor'; desc.innerText = 'Triple-chamber cryogenic mixture delivering 4 hours of atmospheric scrubbed air.'; } } function scanDepth(depth, zone) { const log = document.getElementById('sonar-log'); log.innerText = 'Scan: ' + zone + ' at ' + depth + ' meters detected organic life forms.'; } function showCosmos(text) { const output = document.getElementById('space-output'); output.innerText = text; } const slider = document.getElementById('pressure-slider'); if(slider) { slider.addEventListener('input', (e) => { const val = e.target.value; document.getElementById('pressure-val').innerText = val + ' GPa'; PARTICLE_SETTINGS[4].speedY = -0.8 * (val / 50); PARTICLE_SETTINGS[4].size = 3.5 * (val / 50); }); }</script>
 </body>
+
 </html>
